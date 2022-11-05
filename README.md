@@ -93,4 +93,25 @@ En este archivo cambiaremos una imagen, ingresándole un texto adicional. Para e
 Luego de esto volvemos a la sección de "Pipelines" a revisar si esta se está ejecutando correctamente:
 ![](fotos/runningpipeline.png)
 
-Ya podemos revisar el despliegue llendo al link del [artefacto](https://juan-lopez-ro-qa.azurewebsites.net) (página web).
+Ahora vamos a "Releases" y entramos al primer release para poder ver que el release ha sido exitoso.
+![](fotos/primerreleaseexitoso.png)
+
+## Creación de un release a la etapa de producción
+Ahora podemos ingresar nuevamente a "Releases", ingresar al release actual y darle a la opción "Edit Pipeline" y aquí clonamos la etapa de QA.
+Antes de continuar con la nueva etapa, debemos establecer las condiciones post despligue de la etapa de QA. Para hacer esto debemos darle al botón de la personita en la casilla de QA, y una vez en el menú dejamos activada la opción de "Gates".
+![](fotos/gatesactivadaqa.png)
+Luego, aún en este menú, añadimos una nueva gate con 0 minutos de delay antes de la evaluación. Esta gate debe ser de tipo "Query Work Items" y en la sección de query debe ser de tipo "Critical Bugs".
+![](fotos/gatequeryworkitemsqa.png)
+A continuación, expandimos la opción "Evaluation options" y cambiamos el tiempo entre re-evaluaciones de gates a 5 minutos, y el timeout después de que el gate falle a 1 hora.
+![](fotos/evaluationoptionsgateqa.png) 
+ \
+Para que funcione este gate hay que darle permisos de read query al servicio "Project Build Service". Hay que ir a "Azure Boards", luego a "Queries", luego a "All", luego a "Shared Queries" hasta llegar a "Security" en donde debemos buscar por el Build Service del proyecto y una vez ahí darle permisos de lectura.
+![](fotos/permisoreadsharedqueries.png)
+Ya podemos volver a la copia que hicimos de la etapa QA previamente, la renombramos a "Prod" y establecemos sus condiciones pre despliegue. En estas condiciones debemos establecer que antes del despliegue se le deben dar permisos y hay que aclarar qué usuario va a dar estos permisos, por lo que me pongo a mí.
+![](fotos/predeployconditionsprod.png)
+Ahora debemos entrar al "1 job 1 task" de "Prod" para actualizar el nombre del servicio de aplicación que vamos a utilizar.
+\
+![](fotos/appservicenameprodstage.png)
+ \
+A continuación debemos volver a probar que el despliegue esté funcionando, así que volvemos a la sección de código, al archivo "_Layout.cshtml" y realizamos un nuevo cambio. Luego de hacerle commit a esto esperamos a que el despliegue termine, solo que en este caso va a dar un error por el gate que acabamos de establecer. Aquí lo que hacemos es ir a "Boards" y luego a "Queries" para revisar el bug, una vez ahí le ponemos el estado de "Done" para que no moleste más.
+Guardamos cambios y aprovamos el despliegue de la nueva etapa ("Prod") y revisamos los cambios hechos en el nuevo [artefacto](https://juan-lopez-ro-prod.azurewebsites.net) de prod.
